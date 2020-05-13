@@ -33,6 +33,7 @@
     :precondition (and
         (en ?u ?x)
         (conectado ?x ?y)
+        (not (ocupado ?u))
         )
     :effect (and
         (en ?u ?y)
@@ -41,7 +42,7 @@
 )
 
 (:action asignar
-    :parameters (?u - unidad ?r - recurso ?tr - tipo_recurso ?l - localizacion ?e - edificio ?te - tipo_edificio)
+    :parameters (?u - unidad ?r - recurso ?tr - tipo_recurso ?l - localizacion ?e - edificio)
     :precondition (and
         (not (ocupado ?u))
         (unidadTipo ?u vce)
@@ -57,13 +58,13 @@
 )
 
 (:action construir
-    :parameters (?u - unidad ?e - edificio ?te - tipo_edificio ?l - localizacion ?ea - edificio)
+    :parameters (?u - unidad ?e - edificio ?te - tipo_edificio ?l - localizacion)
     :precondition (and
         (forall (?x - localizacion)(not (construido ?e ?x)))
         (not (ocupado ?u))
         (unidadTipo ?u vce)
         (en ?u ?l)
-        (not (construido ?ea ?l))
+        (forall (?ea - edificio) (not (construido ?ea ?l)))
         (edificioTipo ?e ?te)
         (forall (?t - tipo_recurso)
             (imply (requiere ?te ?t) (tenemos ?t))

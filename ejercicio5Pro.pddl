@@ -36,6 +36,8 @@
     (requiere centro_de_mando gas)
     (requiere barracones minerales)
     (requiere extractor minerales)
+    (requiere bahia_de_ingenieria minerales)
+    (requiere bahia_de_ingenieria gas)
 
     (genera centro_de_mando vce)
     (genera barracones marine)
@@ -46,8 +48,8 @@
     (necesita segador minerales)
     (necesita segador gas)
 
-    (ingrediente impulsor_segador minerales) ;;NO SE SABE, LO SUPONGO
-    (ingrediente impulsor_segador gas) ;;NO SE SABE, LO SUPONGO
+    (ingrediente impulsor_segador minerales)
+    (ingrediente impulsor_segador gas)
 
     (conectado loc1_1 loc2_1)
     (conectado loc2_1 loc1_1)
@@ -212,8 +214,12 @@
 )
 
 (:goal (and
-    ;(construido Barracones1 loc3_2)
-    (investigado impulsor_segador)
+    (en U1 loc4_2)
+    (en U2 loc4_2)
+    (en U3 loc4_1)
+    (unidadTipo U1 marine)
+    (unidadTipo U2 segador)
+    (unidadTipo U3 marine)
 ))
 
 )

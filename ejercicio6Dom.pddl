@@ -1,34 +1,38 @@
-﻿(define (domain ejercicio5)
+﻿(define (domain ejercicio6)
 
-(:requirements :adl :strips :typing :negative-preconditions :disjunctive-preconditions :universal-preconditions)
+(:requirements :adl :fluents :strips :typing :negative-preconditions :disjunctive-preconditions :universal-preconditions)
 (:types
     localizacion recurso unidad edificio - object
 )
 (:constants
     vce marine segador - tipo_unidad
-    centro_de_mando barracones extractor bahia_de_ingenieria - tipo_edificio
+    centro_de_mando barracones extractor bahia_de_ingenieria deposito - tipo_edificio
     minerales gas - tipo_recurso
     impulsor_segador - investigacion
+)
+(:functions
+    (tenemos ?r - tipo_recurso)
+    (extrayendo ?r - tipo_recurso)
+    (limite)
+    (necesita ?tu - tipo_unidad ?tr - tipo_recurso)
+    (requiere ?te - tipo_edificio ?tr - tipo_recurso)
+    (ingrediente ?i - investigacion ?tr - tipo_recurso)
 )
 (:predicates
     (conectado ?x ?y - localizacion)
 
     (en ?u - unidad ?x - localizacion)
     (ocupado ?v - unidad)
-    (necesita ?tu - tipo_unidad ?tr - tipo_recurso)
 
     (construido ?e - edificio ?x - localizacion)
-    (requiere ?te - tipo_edificio ?tr - tipo_recurso)
     (genera ?te - tipo_edificio ?tu - tipo_unidad)
 
     (nodo ?r - recurso ?x - localizacion)
-    (tenemos ?r - tipo_recurso)
 
     (edificioTipo ?e - edificio ?t - tipo_edificio)
     (unidadTipo ?u - unidad ?t - tipo_unidad)
     (recursoTipo ?e - recurso ?r - tipo_recurso)
 
-    (ingrediente ?i - investigacion ?tr - tipo_recurso)
     (investigado ?i - investigacion)
 )
 
@@ -56,8 +60,22 @@
         (or (not (recursoTipo ?r gas)) (and (construido ?e ?l) (edificioTipo ?e extractor)))
         )
     :effect (and
-        (tenemos ?tr)
         (ocupado ?u)
+        (increase (extrayendo ?tr) 1)
+    )
+)
+
+(:action desasignar
+    :parameters (?u - unidad ?r - recurso ?tr - tipo_recurso ?l - localizacion)
+    :precondition (and 
+        (ocupado ?u)
+        (en ?u ?l)
+        (nodo ?r ?l)
+        (recursoTipo ?r ?tr)
+    )
+    :effect (and 
+        (not (ocupado ?u))
+        (decrease (extrayendo ?tr) 1)
     )
 )
 
@@ -71,11 +89,36 @@
         (forall (?ea - edificio) (not (construido ?ea ?l)))
         (edificioTipo ?e ?te)
         (forall (?t - tipo_recurso)
-            (imply (requiere ?te ?t) (tenemos ?t))
+            (>= (tenemos ?t) (requiere ?te ?t))
         )
     )
     :effect (and
         (construido ?e ?l)
+        (forall (?t - tipo_recurso) 
+            (decrease (tenemos ?t) (requiere ?te ?t))
+        )
+    )
+)
+
+(:action construir_dep
+    :parameters (?u - unidad ?e - edificio ?l - localizacion)
+    :precondition (and
+        (forall (?x - localizacion)(not (construido ?e ?x)))
+        (not (ocupado ?u))
+        (unidadTipo ?u vce)
+        (en ?u ?l)
+        (forall (?ea - edificio) (not (construido ?ea ?l)))
+        (edificioTipo ?e deposito)
+        (forall (?t - tipo_recurso)
+            (>= (tenemos ?t) (requiere deposito ?t))
+        )
+    )
+    :effect (and
+        (construido ?e ?l)
+        (forall (?t - tipo_recurso) 
+            (decrease (tenemos ?t) (requiere deposito ?t))
+        )
+        (increase (limite) 100)
     )
 )
 
@@ -85,7 +128,7 @@
         (construido ?e ?l)
         (edificioTipo ?e ?te)
         (forall (?t - tipo_recurso)
-            (imply (necesita ?tu ?t) (tenemos ?t))
+            (>= (tenemos ?t) (necesita ?tu ?t))
         )
         (forall (?x - tipo_unidad)
             (not (unidadTipo ?u ?x))
@@ -96,6 +139,9 @@
     :effect (and
         (unidadTipo ?u ?tu)
         (en ?u ?l)
+        (forall (?t - tipo_recurso)
+            (decrease (tenemos ?t) (necesita ?tu ?t))
+        )
     )
 )
 
@@ -105,12 +151,30 @@
         (edificioTipo ?e bahia_de_ingenieria)
         (construido ?e ?l)
         (forall (?t - tipo_recurso)
-            (imply (ingrediente ?i ?t) (tenemos ?t))
+            (>= (tenemos ?t) (ingrediente ?i ?t))
         )
     )
     :effect (and
         (investigado ?i)
+        (forall (?t - tipo_recurso)
+            (decrease (tenemos ?t) (ingrediente ?i ?t))
+        )
     )
 )
+
+(:action recolectar
+    :parameters ()
+    :precondition (and
+        (forall (?t - tipo_recurso)
+            (not (> (+ (tenemos ?t) (* (extrayendo ?t) 25)) (limite)))
+        )
+    )
+    :effect (and 
+        (forall (?t - tipo_recurso)
+        (increase (tenemos ?t) (* 25 (extrayendo ?t)))
+        )
+    )
+)
+
 
 )
